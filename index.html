@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>前端内存泄漏 | 技术分享</title>
+  <title>前端内存泄漏实战分析 - TiantianApp 文本点读场景</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;0,600;1,400&family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
@@ -20,6 +20,8 @@
       --code-bg: #0d0d0d;
       --border-subtle: rgba(232, 93, 4, 0.1);
       --border-strong: rgba(232, 93, 4, 0.3);
+      --danger: #ff6b6b;
+      --success: #6bcb77;
     }
 
     * {
@@ -41,7 +43,6 @@
       font-size: 18px;
     }
 
-    /* Layout */
     .container {
       max-width: 1400px;
       margin: 0 auto;
@@ -57,7 +58,6 @@
       border-bottom: none;
     }
 
-    /* Typography */
     h1, h2, h3 {
       font-family: 'Instrument Serif', Georgia, serif;
       font-weight: 400;
@@ -65,7 +65,7 @@
     }
 
     h1 {
-      font-size: clamp(3rem, 8vw, 7rem);
+      font-size: clamp(2.5rem, 6vw, 5rem);
       letter-spacing: -0.02em;
       margin-bottom: 2rem;
       color: var(--text-primary);
@@ -103,7 +103,6 @@
       max-width: 72ch;
     }
 
-    /* Hero */
     .hero {
       min-height: 100vh;
       display: flex;
@@ -143,7 +142,17 @@
       gap: 0.5rem;
     }
 
-    /* Code blocks */
+    .tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
     pre {
       background: var(--code-bg);
       border-radius: 8px;
@@ -155,6 +164,10 @@
       line-height: 1.8;
       border: 1px solid var(--border-subtle);
       max-width: 100%;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', monospace;
     }
 
     pre code {
@@ -172,7 +185,6 @@
       color: var(--accent-soft);
     }
 
-    /* Syntax highlighting */
     .keyword { color: #ff6b6b; }
     .function { color: #4ecdc4; }
     .string { color: #ffd93d; }
@@ -180,8 +192,8 @@
     .variable { color: #74b9ff; }
     .number { color: #a29bfe; }
     .class-name { color: #fd79a8; }
+    .annotation { color: #ff9f0a; }
 
-    /* Cards */
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
@@ -202,11 +214,11 @@
     }
 
     .card.danger {
-      border-left: 3px solid #ff6b6b;
+      border-left: 3px solid var(--danger);
     }
 
     .card.success {
-      border-left: 3px solid #6bcb77;
+      border-left: 3px solid var(--success);
     }
 
     .card-header {
@@ -230,15 +242,14 @@
 
     .badge.danger {
       background: rgba(255, 107, 107, 0.1);
-      color: #ff6b6b;
+      color: var(--danger);
     }
 
     .badge.success {
       background: rgba(107, 203, 119, 0.1);
-      color: #6bcb77;
+      color: var(--success);
     }
 
-    /* Lists */
     ul, ol {
       margin: 1.5rem 0;
       padding-left: 2rem;
@@ -256,7 +267,18 @@
       font-weight: 500;
     }
 
-    /* Table */
+    blockquote {
+      border-left: 3px solid var(--accent);
+      padding-left: 2rem;
+      margin: 3rem 0;
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      line-height: 1.4;
+      max-width: 60ch;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -283,64 +305,6 @@
       color: var(--text-secondary);
     }
 
-    /* Quote */
-    blockquote {
-      border-left: 3px solid var(--accent);
-      padding-left: 2rem;
-      margin: 3rem 0;
-      font-family: 'Instrument Serif', Georgia, serif;
-      font-style: italic;
-      font-size: 1.5rem;
-      color: var(--text-primary);
-      line-height: 1.4;
-      max-width: 60ch;
-    }
-
-    /* Warning box */
-    .warning-box {
-      background: rgba(255, 159, 10, 0.05);
-      border: 1px solid rgba(255, 159, 10, 0.2);
-      padding: 2rem;
-      margin: 2.5rem 0;
-      border-radius: 4px;
-    }
-
-    .warning-box h4 {
-      color: #ff9f0a;
-      margin-bottom: 1rem;
-      font-weight: 500;
-    }
-
-    /* Checklist */
-    .checklist {
-      list-style: none;
-      padding: 0;
-      max-width: 72ch;
-    }
-
-    .checklist li {
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      padding: 1rem;
-      margin-bottom: 0.5rem;
-      background: var(--bg-secondary);
-      transition: all 0.2s ease;
-    }
-
-    .checklist li:hover {
-      background: var(--bg-elevated);
-    }
-
-    .checklist input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      margin-top: 0.2rem;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
-
-    /* Navigation */
     .nav-sticky {
       position: fixed;
       top: 2rem;
@@ -371,7 +335,6 @@
       transform: scale(1.5);
     }
 
-    /* Back to top */
     .back-to-top {
       position: fixed;
       bottom: 2rem;
@@ -403,23 +366,53 @@
       border-color: var(--accent);
     }
 
-    /* Footer */
+    .timeline {
+      position: relative;
+      padding-left: 3rem;
+      margin: 3rem 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border-subtle);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 3rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -3rem;
+      top: 0.5rem;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      transform: translateX(-5px);
+    }
+
+    .timeline-time {
+      font-size: 0.85rem;
+      color: var(--accent-soft);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
     footer {
       padding: 6rem 0;
       text-align: center;
       border-top: 1px solid var(--border-subtle);
     }
 
-    footer h2 {
-      padding-left: 0;
-      margin-bottom: 1.5rem;
-    }
-
-    footer::before {
-      display: none;
-    }
-
-    /* Links */
     a {
       color: var(--accent-soft);
       text-decoration: none;
@@ -430,7 +423,6 @@
       color: var(--accent);
     }
 
-    /* Responsive */
     @media (max-width: 768px) {
       .nav-sticky {
         display: none;
@@ -454,28 +446,6 @@
         font-size: 1.25rem;
       }
     }
-
-    /* Animations */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate-in {
-      opacity: 0;
-      animation: fadeInUp 0.8s ease-out forwards;
-    }
-
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
-    .delay-4 { animation-delay: 0.4s; }
   </style>
 </head>
 <body>
@@ -483,516 +453,419 @@
   <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
 
   <div class="container">
-    <!-- Hero Section -->
     <section class="hero" id="introduction">
-      <h1 class="animate-in">前端内存泄漏<br>完全指南</h1>
-      <p class="animate-in delay-1">30分钟技术分享 • React &amp; JavaScript • 检测与预防</p>
-      <div class="hero-meta animate-in delay-2">
-        <span>⏱️ 30分钟</span>
-        <span>🎯 React / JavaScript</span>
-        <span>📊 检测 + 预防</span>
+      <h1>前端内存泄漏实战分析</h1>
+      <p style="font-size: 1.4rem; color: var(--accent-soft);">基于 TiantianApp 文本点读场景</p>
+      <div class="hero-meta">
+        <span>📱 React Native</span>
+        <span>🎵 react-native-sound</span>
+        <span>🔍 真实案例</span>
+        <span>💡 完整解决方案</span>
       </div>
     </section>
 
-    <!-- Definition Section -->
-    <section id="definition">
-      <h2>什么是内存泄漏？</h2>
+    <section id="background">
+      <h2>📋 背景</h2>
 
-      <div class="card-grid">
-        <div class="card animate-in">
-          <h3>定义</h3>
-          <p><strong>内存泄漏</strong> = 程序中已动态分配的堆内存由于某种原因未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃。</p>
-        </div>
-
-        <div class="card animate-in delay-1">
-          <h3>为什么前端要注意？</h3>
-          <pre><code style="font-size: 0.75rem;">传统认知：前端页面刷新 = 内存自动清理
-
-现实情况：
-• SPA（单页应用）长时间不刷新
-• 用户停留时间长（表格、编辑器类应用）
-• 移动端内存有限</code></pre>
-        </div>
+      <div class="card">
+        <h3>场景描述</h3>
+        <p><strong>文本点读题型，</strong>用户录音完成后启动播放原音，但在音频未加载完成时立即切题，导致内存泄漏。</p>
       </div>
-
-      <div class="card danger animate-in delay-2">
-        <div class="card-header">
-          <span class="badge danger">影响严重程度</span>
-        </div>
-        <p><strong>轻度：</strong> 页面变慢、卡顿</p>
-        <p><strong>中度：</strong> 浏览器崩溃、白屏</p>
-        <p><strong>重度：</strong> 整个系统资源耗尽</p>
-      </div>
-    </section>
-
-    <!-- Scenario 1 -->
-    <section id="scenario-1">
-      <h2>场景1：未清理的定时器</h2>
-
-      <div class="card danger">
-        <div class="card-header">
-          <span class="badge danger">❌ 问题代码</span>
-        </div>
-        <pre><code><span class="comment">// React 组件</span>
-<span class="keyword">const</span> MyComponent = () => {
-  <span class="keyword">const</span> [count, setCount] = <span class="function">useState</span>(<span class="number">0</span>);
-
-  <span class="function">useEffect</span>(() => {
-    <span class="comment">// ❌ 每秒更新一次，但组件卸载时没有清理</span>
-    <span class="keyword">const</span> timer = <span class="function">setInterval</span>(() => {
-      setCount(c => c + <span class="number">1</span>);
-    }, <span class="number">1000</span>);
-    <span class="comment">// 缺少 return 清理函数！</span>
-  }, []);
-
-  <span class="keyword">return</span> &lt;div&gt;Count: {count}&lt;/div&gt;;
-};</code></pre>
-      </div>
-
-      <div class="card success">
-        <div class="card-header">
-          <span class="badge success">✅ 正确写法</span>
-        </div>
-        <pre><code><span class="keyword">const</span> MyComponent = () => {
-  <span class="keyword">const</span> [count, setCount] = <span class="function">useState</span>(<span class="number">0</span>);
-
-  <span class="function">useEffect</span>(() => {
-    <span class="keyword">const</span> timer = <span class="function">setInterval</span>(() => {
-      setCount(c => c + <span class="number">1</span>);
-    }, <span class="number">1000</span>);
-
-    <span class="comment">// ✅ 清理定时器</span>
-    <span class="keyword">return</span> () => <span class="function">clearInterval</span>(timer);
-  }, []);
-
-  <span class="keyword">return</span> &lt;div&gt;Count: {count}&lt;/div&gt;;
-};</code></pre>
-      </div>
-
-      <blockquote>
-        有 setInterval 就必须有 clearInterval，有 setTimeout 就要有 clearTimeout
-      </blockquote>
-    </section>
-
-    <!-- Scenario 2 -->
-    <section id="scenario-2">
-      <h2>场景2：未清理的事件监听器</h2>
-
-      <div class="card danger">
-        <div class="card-header">
-          <span class="badge danger">❌ 问题代码</span>
-        </div>
-        <pre><code><span class="keyword">class</span> <span class="class-name">MyComponent</span> <span class="keyword">extends</span> React.Component {
-  <span class="function">componentDidMount</span>() {
-    <span class="comment">// ❌ 全局事件监听，但从未移除</span>
-    window.<span class="function">addEventListener</span>(<span class="string">'resize'</span>, <span class="keyword">this</span>.handleResize);
-    document.<span class="function">addEventListener</span>(<span class="string">'click'</span>, <span class="keyword">this</span>.handleClick);
-  }
-
-  render() { <span class="comment">/* ... */</span> }
-}</code></pre>
-      </div>
-
-      <div class="card success">
-        <div class="card-header">
-          <span class="badge success">✅ 正确写法</span>
-        </div>
-        <pre><code><span class="keyword">class</span> <span class="class-name">MyComponent</span> <span class="keyword">extends</span> React.Component {
-  <span class="function">componentDidMount</span>() {
-    window.<span class="function">addEventListener</span>(<span class="string">'resize'</span>, <span class="keyword">this</span>.handleResize);
-    document.<span class="function">addEventListener</span>(<span class="string">'click'</span>, <span class="keyword">this</span>.handleClick);
-  }
-
-  <span class="function">componentWillUnmount</span>() {
-    <span class="comment">// ✅ 移除所有事件监听器</span>
-    window.<span class="function">removeEventListener</span>(<span class="string">'resize'</span>, <span class="keyword">this</span>.handleResize);
-    document.<span class="function">removeEventListener</span>(<span class="string">'click'</span>, <span class="keyword">this</span>.handleClick);
-  }
-
-  render() { <span class="comment">/* ... */</span> }
-}</code></pre>
-      </div>
-
-      <h3>🎣 Hooks 版本</h3>
-      <pre><code><span class="keyword">const</span> <span class="function">useResize</span> = (callback) => {
-  <span class="function">useEffect</span>(() => {
-    window.<span class="function">addEventListener</span>(<span class="string">'resize'</span>, callback);
-    <span class="keyword">return</span> () => window.<span class="function">removeEventListener</span>(<span class="string">'resize'</span>, callback);
-  }, [callback]);
-};</code></pre>
-    </section>
-
-    <!-- Scenario 3 -->
-    <section id="scenario-3">
-      <h2>场景3：闭包中的循环引用</h2>
-
-      <div class="card danger">
-        <div class="card-header">
-          <span class="badge danger">❌ 问题代码</span>
-        </div>
-        <pre><code><span class="keyword">function</span> <span class="function">createLeak</span>() {
-  <span class="keyword">const</span> largeArray = <span class="keyword">new</span> <span class="class-name">Array</span>(<span class="number">1000000</span>).<span class="function">fill</span>({ data: <span class="string">'big'</span> });
-
-  <span class="keyword">const</span> handler = <span class="keyword">function</span>() {
-    <span class="comment">// ❌ 闭包引用了 largeArray，handler 无法被 GC</span>
-    console.log(largeArray.length);
-  };
-
-  document.<span class="function">getElementById</span>(<span class="string">'button'</span>).<span class="function">addEventListener</span>(<span class="string">'click'</span>, handler);
-}</code></pre>
-      </div>
-
-      <div class="card success">
-        <div class="card-header">
-          <span class="badge success">✅ 正确写法</span>
-        </div>
-        <pre><code><span class="keyword">function</span> <span class="function">createNoLeak</span>() {
-  <span class="keyword">const</span> largeArray = <span class="keyword">new</span> <span class="class-name">Array</span>(<span class="number">1000000</span>).<span class="function">fill</span>({ data: <span class="string">'big'</span> });
-  <span class="keyword">const</span> length = largeArray.length; <span class="comment">// 只保留需要的值</span>
-
-  <span class="keyword">const</span> handler = <span class="keyword">function</span>() {
-    <span class="comment">// ✅ 闭包只引用基本类型，largeArray 可以被 GC</span>
-    console.log(length);
-  };
-
-  <span class="keyword">const</span> btn = document.<span class="function">getElementById</span>(<span class="string">'button'</span>);
-  btn.<span class="function">addEventListener</span>(<span class="string">'click'</span>, handler);
-
-  <span class="comment">// 及时移除</span>
-  <span class="function">setTimeout</span>(() => {
-    btn.<span class="function">removeEventListener</span>(<span class="string">'click'</span>, handler);
-  }, <span class="number">5000</span>);
-}</code></pre>
-      </div>
-    </section>
-
-    <!-- Scenario 4 -->
-    <section id="scenario-4">
-      <h2>场景4：未清理的第三方库实例</h2>
-
-      <div class="warning-box">
-        <h4>⚠️ 常见需要清理的库</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>库名</th>
-              <th>清理方法</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Chart.js</td>
-              <td><span class="code-inline">chart.destroy()</span></td>
-            </tr>
-            <tr>
-              <td>ECharts</td>
-              <td><span class="code-inline">chart.dispose()</span></td>
-            </tr>
-            <tr>
-              <td>Three.js</td>
-              <td><span class="code-inline">scene.dispose()</span>, <span class="code-inline">geometry.dispose()</span></td>
-            </tr>
-            <tr>
-              <td>Mapbox</td>
-              <td><span class="code-inline">map.remove()</span></td>
-            </tr>
-            <tr>
-              <td>Leaflet</td>
-              <td><span class="code-inline">map.remove()</span></td>
-            </tr>
-            <tr>
-              <td>Video.js</td>
-              <td><span class="code-inline">player.dispose()</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="card success">
-        <div class="card-header">
-          <span class="badge success">✅ Chart.js 示例</span>
-        </div>
-        <pre><code><span class="keyword">const</span> ChartComponent = () => {
-  <span class="keyword">const</span> chartRef = <span class="function">useRef</span>(<span class="keyword">null</span>);
-  <span class="keyword">const</span> chartInstance = <span class="function">useRef</span>(<span class="keyword">null</span>);
-
-  <span class="function">useEffect</span>(() => {
-    <span class="keyword">if</span> (chartInstance.current) {
-      chartInstance.current.<span class="function">destroy</span>();
-    }
-
-    chartInstance.current = <span class="keyword">new</span> <span class="class-name">Chart</span>(chartRef.current, config);
-
-    <span class="comment">// ✅ 清理函数</span>
-    <span class="keyword">return</span> () => {
-      <span class="keyword">if</span> (chartInstance.current) {
-        chartInstance.current.<span class="function">destroy</span>();
-      }
-    };
-  }, [chartData]);
-
-  <span class="keyword">return</span> &lt;canvas ref={chartRef} /&gt;;
-};</code></pre>
-      </div>
-    </section>
-
-    <!-- Detection -->
-    <section id="detection">
-      <h2>如何检测内存泄漏</h2>
 
       <div class="card-grid">
         <div class="card">
-          <h3>🔍 Heap Snapshot（堆快照）</h3>
-          <ol>
-            <li>打开 Chrome DevTools → Memory</li>
-            <li>选择 "Heap snapshot"</li>
-            <li>拍摄第一张快照（基准）</li>
-            <li>执行操作（打开/关闭页面、触发交互）</li>
-            <li>拍摄第二张快照</li>
-            <li>选择第二个快照 → "Comparison" 视图</li>
-            <li>查看 "+" 号（新增的对象）</li>
-          </ol>
+          <h3>技术栈</h3>
+          <p>React Native + TypeScript + react-native-sound</p>
         </div>
-
         <div class="card">
-          <h3>📈 Allocation Timeline（分配时间线）</h3>
-          <ol>
-            <li>选择 "Allocation instrumentation on timeline"</li>
-            <li>开始录制</li>
-            <li>操作页面</li>
-            <li>停止录制</li>
-            <li>分析蓝色柱状图（分配的对象）</li>
-          </ol>
+          <h3>影响范围</h3>
+          <p>所有使用 AudioManager 的音频播放场景</p>
         </div>
       </div>
 
       <div class="card">
-        <h3>📊 Allocation Sampling（采样分析）</h3>
-        <p>性能开销小，适合长时间监控，不显示完整对象，只显示调用栈。</p>
+        <h3>🔍 问题复现流程</h3>
+        <ol>
+          <li>进入文本点读题</li>
+          <li>点击录音按钮，完成录音</li>
+          <li>点击"播放原音"按钮，启动音频播放</li>
+          <li>音频正在加载中（未开始播放）</li>
+          <li>立即点击"下一题"，切到其他题目</li>
+        </ol>
       </div>
-
-      <h3>🧪 快速测试方法</h3>
-      <pre><code><span class="keyword">let</span> iterations = <span class="number">0</span>;
-<span class="keyword">const</span> maxIterations = <span class="number">20</span>;
-
-<span class="keyword">function</span> <span class="function">testMemory</span>() {
-  <span class="keyword">if</span> (iterations >= maxIterations) {
-    console.log(<span class="string">'Test complete. Check if memory keeps growing.'</span>);
-    <span class="keyword">return</span>;
-  }
-
-  <span class="comment">// 执行可能泄漏的操作</span>
-  <span class="keyword">const</span> btn = document.<span class="function">querySelector</span>(<span class="string">'#leak-button'</span>);
-  btn.<span class="function">click</span>();
-
-  iterations++;
-  console.log(<span class="string">`Iteration </span>${iterations}<span class="string">`</span>);
-
-  <span class="function">setTimeout</span>(testMemory, <span class="number">1000</span>);
-}
-
-<span class="function">testMemory</span>();</code></pre>
     </section>
 
-    <!-- Indicators -->
-    <section id="indicators">
-      <h2>关键指标识别</h2>
+    <section id="analysis">
+      <h2>🐛 根本原因分析</h2>
+
+      <h3>代码路径分析</h3>
 
       <div class="card-grid">
         <div class="card">
-          <h3>📊 正常情况</h3>
-          <ul>
-            <li>✅ 内存有波动，但会回落</li>
-            <li>✅ 峰值和基线保持稳定</li>
-          </ul>
+          <div class="card-header">
+            <span class="badge">第一步：启动播放原音</span>
+          </div>
+          <pre><code><span class="comment">// 文件：AudioManager.ts</span>
+<span class="keyword">public</span> <span class="function">startPlayFile</span>(
+  config: ({ path: <span class="variable">string</span> } & <span class="variable">AudioPlayOptions</span>) | <span class="variable">string</span>,
+  <span class="variable">callback</span>?: <span class="variable">AudioPlayCallback</span>
+): <span class="variable">string</span> | <span class="keyword">undefined</span> {
+  <span class="keyword">let</span> <span class="variable">soundId</span>: <span class="variable">string</span> = <span class="variable">Date</span>.now() + <span class="string">'_'</span> + <span class="variable">Math</span>.random();
+
+  <span class="comment">// 初始化状态</span>
+  <span class="keyword">this</span>.<span class="variable">playStatusMap</span>[<span class="variable">soundId</span>] = <span class="variable">PlayStatus</span>.PLAY;
+  <span class="keyword">this</span>.<span class="variable">soundStatusMap</span>[<span class="variable">soundId</span>] = <span class="variable">SoundStatus</span>.WAIT_FOR_READY; <span class="annotation">// ⚠️ 等待加载</span>
+  <span class="keyword">this</span>.<span class="variable">playerMap</span>[<span class="variable">soundId</span>] = <span class="keyword">new</span> <span class="class-name">Sound</span>(path); <span class="annotation">// ⚠️ 创建 Sound 对象</span>
+
+  <span class="keyword">return</span> <span class="variable">soundId</span>;
+}</code></pre>
         </div>
 
         <div class="card danger">
-          <h3>🚨 内存泄漏特征</h3>
-          <ul>
-            <li>❌ 内存持续增长（锯齿状上升）</li>
-            <li>❌ 回收后基线不断抬高</li>
-            <li>❌ DOM Nodes 数量持续增加</li>
-            <li>❌ Event Listeners 数量不降反升</li>
-          </ul>
+          <div class="card-header">
+            <span class="badge danger">第二步：用户切题</span>
+          </div>
+          <pre><code><span class="comment">// 文件：BaseQuestionPage.tsx</span>
+<span class="keyword">public</span> <span class="function">onMainQuestionChange</span>(<span class="variable">mainQuestionIndex</span>: <span class="variable">number</span>) {
+  <span class="keyword">if</span> (<span class="keyword">this</span>.props.mainQuestionIndex != mainQuestionIndex) {
+    <span class="comment">// ❌ 只停止了 stemRef</span>
+    <span class="keyword">this</span>.stemRef?.current?.stop?.();
+  }
+}</code></pre>
+          <p style="color: var(--danger); margin-top: 1rem;">❌ 问题：只调用了 stemRef.stop()，没有调用 AudioManager.stopAllPlayer()</p>
+        </div>
+
+        <div class="card danger">
+          <div class="card-header">
+            <span class="badge danger">第三步：StemView 停止播放</span>
+          </div>
+          <pre><code><span class="comment">// 文件：StemView.tsx</span>
+<span class="keyword">public</span> <span class="function">stop</span>() {
+  <span class="keyword">const</span> <span class="variable">mediaInfo</span> = <span class="keyword">this</span>.mediaRefList[<span class="keyword">this</span>.state.curMediaIndex];
+  <span class="keyword">if</span> (!<span class="variable">mediaInfo</span>) <span class="keyword">return</span>;
+
+  <span class="keyword">if</span> (<span class="variable">mediaInfo</span>.mediaItem.type === <span class="variable">MediaItemType</span>.AUDIO) {
+    <span class="variable">mediaRef</span>.audioRef?.current?.stop(); <span class="annotation">// ❌ 只停止 audioRef</span>
+    <span class="keyword">return</span>;
+  }
+}</code></pre>
+          <p style="color: var(--danger); margin-top: 1rem;">❌ 问题：没有通知 AudioManager 清理资源</p>
+        </div>
+
+        <div class="card danger">
+          <div class="card-header">
+            <span class="badge danger">第四步：AudioManager 停止逻辑</span>
+          </div>
+          <pre><code><span class="comment">// 文件：AudioManager.ts</span>
+<span class="keyword">public async</span> <span class="function">stopPlay</span>(<span class="variable">soundId</span>: <span class="variable">string</span>): <span class="variable">Promise</span>&lt;<span class="keyword">void</span>&gt; {
+  <span class="comment">// ⚠️ 音频未加载完成，直接返回</span>
+  <span class="keyword">if</span> (<span class="keyword">this</span>.soundStatusMap[soundId] === <span class="variable">SoundStatus</span>.WAIT_FOR_READY) {
+    <span class="keyword">this</span>.soundStatusMap[soundId] = <span class="variable">SoundStatus</span>.WAIT_FOR_STOP;
+    <span class="keyword">return</span> resolve(); <span class="annotation">// ❌ 没有清理资源！</span>
+  }
+
+  <span class="comment">// ... 正常释放逻辑</span>
+}</code></pre>
+          <p style="color: var(--danger); margin-top: 1rem;">❌ 核心问题：WAIT_FOR_READY 状态下没有调用 releaseSoundPlayer()</p>
         </div>
       </div>
     </section>
 
-    <!-- Best Practices -->
-    <section id="best-practices">
-      <h2>最佳实践与工具</h2>
+    <section id="timeline-section">
+      <h2>💥 内存泄漏形成过程</h2>
 
-      <div class="card">
-        <h3>✅ React Hooks 清理清单</h3>
-        <pre><code><span class="function">useEffect</span>(() => {
-  <span class="comment">// 1. 设置定时器/轮询</span>
-  <span class="keyword">const</span> timer = <span class="function">setInterval</span>(callback, <span class="number">1000</span>);
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">T1: startPlayFile("原音.mp3")</div>
+          <div class="card">
+            <ul>
+              <li>playerMap["12345"] = Sound对象</li>
+              <li>soundStatusMap["12345"] = WAIT_FOR_READY</li>
+              <li>playStatusMap["12345"] = PLAY</li>
+            </ul>
+          </div>
+        </div>
 
-  <span class="comment">// 2. 添加事件监听</span>
-  window.<span class="function">addEventListener</span>(<span class="string">'resize'</span>, handleResize);
+        <div class="timeline-item">
+          <div class="timeline-time">T2: 用户点击"下一题"</div>
+          <p>onMainQuestionChange() 被调用</p>
+        </div>
 
-  <span class="comment">// 3. 订阅数据流</span>
-  <span class="keyword">const</span> subscription = observable.<span class="function">subscribe</span>(observer);
+        <div class="timeline-item">
+          <div class="timeline-time">T3: stemRef.stop()</div>
+          <p>audioRef.stop() 停止播放</p>
+        </div>
 
-  <span class="comment">// 4. 创建第三方库实例</span>
-  <span class="keyword">const</span> chart = <span class="keyword">new</span> <span class="class-name">Chart</span>(canvas, config);
-
-  <span class="comment">// ✅ 返回清理函数</span>
-  <span class="keyword">return</span> () => {
-    <span class="function">clearInterval</span>(timer);
-    window.<span class="function">removeEventListener</span>(<span class="string">'resize'</span>, handleResize);
-    subscription.<span class="function">unsubscribe</span>();
-    chart.<span class="function">destroy</span>();
-  };
-}, [dependencies]);</code></pre>
+        <div class="timeline-item danger">
+          <div class="timeline-time">T4: 切题完成</div>
+          <ul style="color: var(--danger);">
+            <li>❌ playerMap["12345"] 还在内存中</li>
+            <li>❌ soundStatusMap["12345"] = WAIT_FOR_STOP</li>
+            <li>❌ Sound 对象没有调用 .release()</li>
+            <li>❌ Native 层的音频资源未释放</li>
+          </ul>
+        </div>
       </div>
 
-      <h3>🛠️ 实用工具推荐</h3>
+      <div class="card">
+        <h3>内存泄漏验证</h3>
+        <p>使用 Chrome DevTools Memory 面板检测：</p>
+        <ul>
+          <li>初始内存：50MB</li>
+          <li>播放原音 → 切题 → 55MB (+5MB)</li>
+          <li>播放原音 → 切题 → 60MB (+5MB)</li>
+          <li>播放原音 → 切题 → 65MB (+5MB)</li>
+          <li>播放原音 → 切题 → 70MB (+5MB)</li>
+        </ul>
+        <p style="color: var(--danger);"><strong>结论：</strong>每次切题后，内存增加 ~5MB，且无法回收！</p>
+      </div>
+    </section>
+
+    <section id="solutions">
+      <h2>🔧 解决方案</h2>
+
+      <div class="card success">
+        <div class="card-header">
+          <span class="badge success">方案1：修复 AudioManager.stopPlay（推荐）</span>
+        </div>
+        <pre><code><span class="comment">// 问题代码</span>
+<span class="keyword">if</span> (<span class="keyword">this</span>.soundStatusMap[soundId] === <span class="variable">SoundStatus</span>.WAIT_FOR_READY) {
+  <span class="keyword">return</span> resolve(); <span class="annotation">// ❌ 没有清理</span>
+}
+
+<span class="comment">// 修复代码</span>
+<span class="keyword">if</span> (<span class="keyword">this</span>.soundStatusMap[soundId] === <span class="variable">SoundStatus</span>.WAIT_FOR_READY) {
+  <span class="comment">// ✅ 即使音频未加载完成，也要释放资源</span>
+  <span class="keyword">this</span>.releaseSoundPlayer(soundId);
+  <span class="keyword">return</span> resolve();
+}</code></pre>
+      </div>
+
+      <div class="card success">
+        <div class="card-header">
+          <span class="badge success">方案2：切题时清理所有播放器</span>
+        </div>
+        <pre><code><span class="comment">// 文件：BaseQuestionPage.tsx</span>
+<span class="keyword">public</span> <span class="function">onMainQuestionChange</span>(<span class="variable">mainQuestionIndex</span>: <span class="variable">number</span>) {
+  <span class="keyword">if</span> (<span class="keyword">this</span>.props.mainQuestionIndex != mainQuestionIndex) {
+    <span class="comment">// ✅ 停止 stemRef</span>
+    <span class="keyword">this</span>.stemRef?.current?.stop?.();
+
+    <span class="comment">// ✅ 停止 AudioManager 中所有播放器</span>
+    <span class="variable">AudioManager</span>.GetInstance().stopAllPlayer(); <span class="annotation">// 新增</span>
+  }
+}</code></pre>
+      </div>
+
+      <div class="card success">
+        <div class="card-header">
+          <span class="badge success">方案3：StemView 停止时清理 AudioManager</span>
+        </div>
+        <pre><code><span class="comment">// 文件：StemView.tsx</span>
+<span class="keyword">public</span> <span class="function">stop</span>() {
+  <span class="keyword">const</span> <span class="variable">mediaInfo</span> = <span class="keyword">this</span>.mediaRefList[<span class="keyword">this</span>.state.curMediaIndex];
+  <span class="keyword">if</span> (!<span class="variable">mediaInfo</span>) <span class="keyword">return</span>;
+
+  <span class="comment">// ✅ 停止 AudioManager 中所有播放器</span>
+  <span class="variable">AudioManager</span>.GetInstance().stopAllPlayer(); <span class="annotation">// 新增</span>
+
+  <span class="keyword">if</span> (<span class="variable">mediaInfo</span>.mediaItem.type === <span class="variable">MediaItemType</span>.AUDIO) {
+    <span class="variable">mediaRef</span>.audioRef?.current?.stop();
+    <span class="keyword">return</span>;
+  }
+}</code></pre>
+      </div>
+    </section>
+
+    <section id="best-practices">
+      <h2>✅ 最佳实践总结</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>📌 音频播放器管理原则</h3>
+          <p><strong>✅ DO:</strong></p>
+          <ul>
+            <li>每个播放实例必须有唯一的 soundId</li>
+            <li>播放完成后必须调用 release()</li>
+            <li>切换页面时必须停止所有播放器</li>
+            <li>未加载完成的播放器也要清理资源</li>
+          </ul>
+          <p><strong>❌ DON'T:</strong></p>
+          <ul>
+            <li>只停止 UI 层面的播放</li>
+            <li>认为异步加载的音频会自动清理</li>
+            <li>在 WAIT_FOR_READY 状态下直接返回</li>
+            <li>依赖垃圾回收自动清理 Native 资源</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>📌 React Native 生命周期清理</h3>
+          <pre><code><span class="comment">// ✅ 正确：componentWillUnmount 中清理</span>
+<span class="keyword">class</span> <span class="class-name">MyPage</span> <span class="keyword">extends</span> <span class="variable">React</span>.Component {
+  <span class="function">componentWillUnmount</span>() {
+    <span class="comment">// 停止所有播放器</span>
+    <span class="variable">AudioManager</span>.GetInstance().stopAllPlayer();
+
+    <span class="comment">// 清理监听器</span>
+    <span class="variable">AudioManager</span>.GetInstance().removePlayStatusListener(cb);
+
+    <span class="comment">// 清理定时器</span>
+    clearTimeout(<span class="keyword">this</span>.nextClickTimeout);
+  }
+}</code></pre>
+        </div>
+
+        <div class="card">
+          <h3>📌 状态机处理异步操作</h3>
+          <pre><code><span class="comment">// ✅ 正确：所有状态分支都要清理资源</span>
+<span class="keyword">public async</span> <span class="function">stopPlay</span>(<span class="variable">soundId</span>: <span class="variable">string</span>): <span class="variable">Promise</span>&lt;<span class="keyword">void</span>&gt; {
+  <span class="keyword">if</span> (<span class="keyword">this</span>.soundStatusMap[soundId] === <span class="variable">SoundStatus</span>.WAIT_FOR_READY) {
+    <span class="comment">// ✅ 未加载完成：也要清理</span>
+    <span class="keyword">this</span>.releaseSoundPlayer(soundId);
+    <span class="keyword">return</span> resolve();
+  }
+
+  <span class="comment">// 其他状态...</span>
+  <span class="keyword">this</span>.releaseSoundPlayer(soundId);
+  <span class="keyword">return</span> resolve();
+}</code></pre>
+        </div>
+
+        <div class="card">
+          <h3>📌 组件卸载时的完整清理</h3>
+          <pre><code><span class="keyword">class</span> <span class="class-name">BaseQuestionPage</span> <span class="keyword">extends</span> <span class="variable">React</span>.Component {
+  <span class="function">componentWillUnmount</span>() {
+    <span class="comment">// 1. 停止当前播放的音频</span>
+    <span class="keyword">if</span> (<span class="keyword">this</span>.playSoundId) {
+      <span class="keyword">this</span>.audioManager.stopPlay(<span class="keyword">this</span>.playSoundId);
+    }
+
+    <span class="comment">// 2. 停止所有播放器（兜底）</span>
+    <span class="keyword">this</span>.audioManager.stopAllPlayer();
+
+    <span class="comment">// 3. 清理定时器</span>
+    clearTimeout(<span class="keyword">this</span>.nextClickTimeout);
+
+    <span class="comment">// 4. 清理监听器</span>
+    <span class="keyword">this</span>.audioManager.removePlayStatusListener(cb);
+  }
+}</code></pre>
+        </div>
+      </div>
+
+      <blockquote>
+        <strong>"异步加载也要管，切题必调 stopAllPlayer"</strong><br>
+        <strong>"WAIT_FOR_READY 也要 release，状态机要完整"</strong>
+      </blockquote>
+    </section>
+
+    <section id="detection">
+      <h2>📊 内存泄漏检测方法</h2>
+
+      <div class="card-grid">
+        <div class="card">
+          <h3>使用 React Native Debugger</h3>
+          <pre><code><span class="comment"># 启动 React Native Debugger</span>
+react-native-debugger
+
+<span class="comment"># 在 Memory 面板中：</span>
+<span class="comment"># 1. 拍摄堆快照（基准）</span>
+<span class="comment"># 2. 执行操作：播放音频 → 切题</span>
+<span class="comment"># 3. 拍摄堆快照</span>
+<span class="comment"># 4. 对比两个快照，查看新增对象</span></code></pre>
+        </div>
+
+        <div class="card">
+          <h3>添加日志监控</h3>
+          <pre><code><span class="comment">// 在 AudioManager 中添加调试日志</span>
+<span class="keyword">private</span> <span class="function">releaseSoundPlayer</span>(<span class="variable">soundId</span>: <span class="variable">string</span>) {
+  console.log(<span class="string">`[AudioManager] Release sound: </span>${soundId}<span class="string">`</span>);
+  console.log(<span class="string">`[AudioManager] Before: </span>${Object.keys(<span class="keyword">this</span>.playerMap).length} players</span>);
+
+  <span class="keyword">this</span>.stopPlayProgress(soundId);
+  <span class="keyword">if</span> (<span class="keyword">this</span>.playerMap[soundId]) {
+    <span class="keyword">this</span>.playerMap[soundId].release();
+    <span class="keyword">delete</span> <span class="keyword">this</span>.playerMap[soundId];
+  }
+
+  console.log(<span class="string">`[AudioManager] After: </span>${Object.keys(<span class="keyword">this</span>.playerMap).length} players</span>);
+}</code></pre>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>预期日志</h3>
+        <p><strong>正常情况：</strong></p>
+        <ul>
+          <li>[AudioManager] Before release: 3 players</li>
+          <li>[AudioManager] After release: 2 players</li>
+        </ul>
+        <p style="color: var(--danger);"><strong>内存泄漏情况：</strong></p>
+        <ul style="color: var(--danger);">
+          <li>❌ [AudioManager] Before release: 10 players ← 持续增长！</li>
+          <li>❌ [AudioManager] After release: 10 players ← 没有减少！</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="summary">
+      <h2>🎯 总结</h2>
+
+      <div class="card">
+        <h3>核心问题</h3>
+        <ol>
+          <li><strong>状态机不完整：</strong> AudioManager.stopPlay() 在 WAIT_FOR_READY 状态下没有清理资源</li>
+          <li><strong>生命周期缺失：</strong> 切题时只停止了 UI 层面的播放，没有清理 AudioManager</li>
+          <li><strong>资源未释放：</strong> Native 层的 Sound 对象没有调用 release()</li>
+        </ol>
+      </div>
+
       <table>
         <thead>
           <tr>
-            <th>工具</th>
-            <th>用途</th>
-            <th>获取方式</th>
+            <th>优先级</th>
+            <th>方案</th>
+            <th>影响范围</th>
+            <th>难度</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>Chrome DevTools</td>
-            <td>内存分析、堆快照</td>
-            <td>浏览器内置</td>
+            <td>🔥 P0</td>
+            <td>修复 AudioManager.stopPlay</td>
+            <td>所有音频播放</td>
+            <td>低</td>
           </tr>
           <tr>
-            <td>React DevTools</td>
-            <td>组件渲染分析</td>
-            <td>Chrome 扩展</td>
+            <td>🔥 P0</td>
+            <td>切题时调用 stopAllPlayer</td>
+            <td>切题场景</td>
+            <td>低</td>
           </tr>
           <tr>
-            <td>why-did-you-render</td>
-            <td>检测不必要的重渲染</td>
-            <td>npm 包</td>
+            <td>📌 P1</td>
+            <td>StemView 停止时清理 AudioManager</td>
+            <td>题干音频</td>
+            <td>低</td>
           </tr>
           <tr>
-            <td>memlab</td>
-            <td>自动化内存泄漏检测</td>
-            <td>npm 包</td>
-          </tr>
-          <tr>
-            <td>React Profiler</td>
-            <td>性能分析工具</td>
-            <td>内置</td>
+            <td>📌 P2</td>
+            <td>添加内存泄漏监控日志</td>
+            <td>调试</td>
+            <td>低</td>
           </tr>
         </tbody>
       </table>
     </section>
 
-    <!-- Checklist -->
-    <section id="checklist">
-      <h2>快速检查清单</h2>
-
-      <ul class="checklist">
-        <li>
-          <input type="checkbox" id="check-1">
-          <label for="check-1">useEffect 有清理函数吗？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-2">
-          <label for="check-2">定时器都清理了吗？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-3">
-          <label for="check-3">事件监听器都移除了吗？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-4">
-          <label for="check-4">第三方库实例销毁了吗？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-5">
-          <label for="check-5">闭包中是否引用了大对象？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-6">
-          <label for="check-6">路由跳转时全局状态清理了吗？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-7">
-          <label for="check-7">有无循环引用？</label>
-        </li>
-        <li>
-          <input type="checkbox" id="check-8">
-          <label for="check-8">写了测试验证内存泄漏吗？</label>
-        </li>
-      </ul>
-
-      <blockquote>
-        每一个 useEffect，都要问自己：组件卸载时会发生什么？
-      </blockquote>
-    </section>
-
-    <!-- Summary -->
-    <section id="summary">
-      <h2>总结</h2>
-
-      <div class="card-grid">
-        <div class="card">
-          <h3>🎯 核心原则</h3>
-          <ol>
-            <li><strong>成对出现：</strong> 创建就要有销毁</li>
-            <li><strong>及时清理：</strong> 组件卸载时必须清理所有资源</li>
-            <li><strong>最小引用：</strong> 闭包只保留必要的数据</li>
-            <li><strong>定期检测：</strong> 开发阶段就要关注内存指标</li>
-          </ol>
-        </div>
-
-        <div class="card success">
-          <h3>✅ 记住一句话</h3>
-          <p style="font-size: 1.3rem; color: var(--text-primary); font-family: 'Instrument Serif', Georgia, serif; font-style: italic;">
-            "每一个 useEffect，都要问自己：组件卸载时会发生什么？"
-          </p>
-        </div>
-      </div>
-
-      <div class="card">
-        <h3>📚 参考资源</h3>
-        <ul>
-          <li><a href="https://developer.chrome.com/docs/devtools/memory-problems/" target="_blank">Chrome DevTools - Memory Analysis</a></li>
-          <li><a href="https://react.dev/learn/referencing-values-with-refs" target="_blank">React - Common Mistakes</a></li>
-          <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Memory_Management" target="_blank">JavaScript Memory Management - MDN</a></li>
-          <li><a href="https://github.com/welldone-software/why-did-you-render" target="_blank">why-did-you-render Documentation</a></li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- Q&A / Footer -->
     <footer>
-      <h2>Q&amp;A</h2>
-
-      <div class="card-grid" style="max-width: 900px; margin: 0 auto 3rem;">
-        <div class="card">
-          <p><strong>Q: 内存泄漏和性能差是一回事吗？</strong></p>
-          <p>A: 不是。内存泄漏是"内存用不掉"，性能差可能是"计算量大"。但长期内存泄漏会导致性能恶化。</p>
-        </div>
-
-        <div class="card">
-          <p><strong>Q: React 函数组件不需要清理吗？</strong></p>
-          <p>A: 一样需要！useEffect 的 cleanup function 就是干这个的。</p>
-        </div>
-
-        <div class="card">
-          <p><strong>Q: 多少内存算泄漏？</strong></p>
-          <p>A: 没有固定标准。关键是趋势——如果操作后内存一直涨不下来，就有问题。</p>
-        </div>
-      </div>
-
-      <p style="font-size: 1.5rem; font-family: 'Instrument Serif', Georgia, serif;">谢谢！🎉</p>
-      <p style="margin-top: 1rem;">有任何问题欢迎交流～</p>
+      <h2 style="margin-bottom: 1.5rem;">谢谢！🎉</h2>
+      <p>有任何问题欢迎交流～</p>
     </footer>
   </div>
 
   <script>
-    // Navigation dots
     const sections = document.querySelectorAll('section[id]');
     const nav = document.getElementById('nav');
 
@@ -1007,7 +880,6 @@
       nav.appendChild(link);
     });
 
-    // Active navigation
     const navLinks = nav.querySelectorAll('.nav-link');
 
     function updateNav() {
@@ -1020,7 +892,6 @@
         }
       });
 
-      // Back to top visibility
       const backToTop = document.getElementById('backToTop');
       if (window.scrollY > 500) {
         backToTop.classList.add('visible');
@@ -1032,47 +903,8 @@
     window.addEventListener('scroll', updateNav);
     window.addEventListener('load', updateNav);
 
-    // Back to top
     document.getElementById('backToTop').addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-
-    // Intersection Observer for animations
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.style.opacity = '1';
-          entry.target.style.transform = 'translateY(0)';
-        }
-      });
-    }, observerOptions);
-
-    // Observe animated elements
-    document.querySelectorAll('.animate-in').forEach(el => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(30px)';
-      el.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
-      observer.observe(el);
-    });
-
-    // Checkbox persistence
-    const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
-    checkboxes.forEach(checkbox => {
-      const key = `checklist-${checkbox.id}`;
-      const saved = localStorage.getItem(key);
-      if (saved === 'true') {
-        checkbox.checked = true;
-      }
-
-      checkbox.addEventListener('change', () => {
-        localStorage.setItem(key, checkbox.checked);
-      });
     });
   </script>
 </body>
